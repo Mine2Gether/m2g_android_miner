@@ -1,0 +1,27 @@
+{
+  "algo": "$algo$",
+  "av": $av$,
+  "background": false,
+  "colors": false,
+  "cpu-affinity": null,
+  "cpu-priority": 3,
+  "donate-level": 1,
+  "low-power-mode": 2,
+  "log-file": null,
+  "max-cpu-usage": $maxcpu$,
+  "print-time": 30,
+  "retries": 5000,
+  "retry-pause": 5,
+  "safe": false,
+  "syslog": false,
+  "threads": $threads$,
+  "pools": [
+    {
+      "url": "$url$",
+      "user": "$username$",
+      "pass": "$pass$",
+      "keepalive": true,
+      "nicehash": false
+    }
+  ]
+}
