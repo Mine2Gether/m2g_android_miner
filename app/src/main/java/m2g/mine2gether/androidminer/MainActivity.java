@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private DrawerLayout drawer;
     boolean accepted = false;
 
-    private final static String[] SUPPORTED_ARCHITECTURES = {"arm64-v8a", "armeabi-v7a"};
+    private final static String[] SUPPORTED_ARCHITECTURES = {"arm64-v8a", "armeabi-v7a", "x86", "x86_64"};
 
     private ScheduledExecutorService svc;
     private TextView tvLog;
@@ -81,6 +81,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public static Context contextOfApplication;
 
+    private PowerManager pm;
+    private PowerManager.WakeLock wl;
+
     public static Context getContextOfApplication() {
         return contextOfApplication;
     }
@@ -93,8 +96,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         contextOfApplication = getApplicationContext();
 
+        if (wl != null) {
+            if (wl.isHeld()) {
+                wl.release();
+            }
+        }
+
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wl;
         wl = pm.newWakeLock(PARTIAL_WAKE_LOCK, "app:sleeplock");
         wl.acquire();
 
@@ -141,8 +149,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         updateUI();
 
-        if (!Arrays.asList(SUPPORTED_ARCHITECTURES).contains(Build.CPU_ABI.toLowerCase())) {
-            Toast.makeText(this, "This app only supports 64 bit architectures, yours is " + Build.CPU_ABI, Toast.LENGTH_LONG).show();
+        if (!Arrays.asList(SUPPORTED_ARCHITECTURES).contains(Tools.getABI())) {
+            Toast.makeText(this, "Unsupported architecture, yours is " + Tools.getABI(), Toast.LENGTH_LONG).show();
             validArchitecture = false;
         }
 
@@ -254,7 +262,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         int av = 1;
 
-        if (Build.CPU_ABI.toLowerCase().contains("armeabi-v7a")) {
+        if (Tools.getABI().contains("armeabi-v7a")) {
             av = 3;
         }
 

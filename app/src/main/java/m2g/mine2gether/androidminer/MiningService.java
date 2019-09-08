@@ -41,22 +41,24 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 
 import static android.os.PowerManager.*;
 
 public class MiningService extends Service {
 
     private static final String LOG_TAG = "MiningSvc";
+    private final static String[] SUPPORTED_ARCHITECTURES = {"arm64-v8a", "armeabi-v7a", "x86", "x86_64"};
     private Process process;
     private String configTemplate;
     private String privatePath;
     private OutputReaderThread outputHandler;
     private ProcessMonitor procMon;
+    private PowerManager pm;
+    private PowerManager.WakeLock wl;
     private int accepted;
     private String speed = "0";
-
     private String lastAssetPath;
-
     private String lastOutput = "";
 
     @Override
@@ -92,23 +94,21 @@ public class MiningService extends Service {
 
     private void copyMinerFiles() {
 
-        String abi = Build.CPU_ABI.toLowerCase().trim();
+        String abi = Tools.getABI();
         String assetPath = "";
 
-        if (abi.equals("arm64-v8a")) {
-            assetPath = "aarch64";
-        } else if (abi.equals("armeabi-v7a")) {
-            assetPath = "armv7";
+        Log.i(LOG_TAG, "MINING SERVICE ABI: " + abi);
+
+        if (Arrays.asList(SUPPORTED_ARCHITECTURES).contains(abi)) {
+            assetPath = abi;
+            assetPath += PreferenceHelper.getName("assetExtension");
         } else {
             Log.i(LOG_TAG, "NO ASSET PATH");
         }
 
-        assetPath += PreferenceHelper.getName("assetExtension");
-
         Log.i(LOG_TAG, "ASSET PATH: " + assetPath);
         Log.i(LOG_TAG, "LAST ASSET PATH: " + lastAssetPath);
         Log.i(LOG_TAG, "ABI: " + abi);
-
 
         if (assetPath.equals(lastAssetPath) == false) {
             Tools.deleteDirectoryContents(new File(privatePath));
@@ -221,17 +221,21 @@ public class MiningService extends Service {
 
     public void startMiningProcess(MiningConfig config) {
 
-        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wl;
-        wl = pm.newWakeLock(PARTIAL_WAKE_LOCK, "app:sleeplock");
-        wl.acquire();
-
         Log.i(LOG_TAG, "starting...");
 
         if (process != null) {
             process.destroy();
-            wl.release(); //Wakelock
         }
+
+        if (wl != null) {
+            if (wl.isHeld()) {
+                wl.release(); //Wakelock
+            }
+        }
+
+        pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wl = pm.newWakeLock(PARTIAL_WAKE_LOCK, "app:sleeplock");
+        wl.acquire();
 
         try {
             Tools.writeConfig(configTemplate, config.algo, config.pool, config.username, config.pass, config.threads, config.maxCpu, config.av, privatePath);
@@ -240,7 +244,7 @@ public class MiningService extends Service {
 
             ProcessBuilder pb = new ProcessBuilder(args);
 
-            pb.directory(getApplicationContext().getFilesDir());
+            pb.directory(new File(privatePath));
 
             pb.environment().put("LD_LIBRARY_PATH", privatePath);
 
@@ -304,6 +308,7 @@ public class MiningService extends Service {
                 raiseMiningServiceStateChange(true);
                 if (proc != null) {
                     proc.waitFor();
+                    Log.i(LOG_TAG, "process exit: " + proc.exitValue());
                 }
                 raiseMiningServiceStateChange(false);
 
@@ -330,6 +335,9 @@ public class MiningService extends Service {
                 reader = new BufferedReader(new InputStreamReader(inputStream));
                 String line;
                 while ((line = reader.readLine()) != null) {
+
+                    Log.i(LOG_TAG, "miner line: " + line);
+
                     output.append(line + System.lineSeparator());
                     if (line.contains("accepted")) {
                         accepted++;

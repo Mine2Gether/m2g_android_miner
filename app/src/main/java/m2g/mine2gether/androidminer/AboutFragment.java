@@ -45,7 +45,7 @@ public class AboutFragment extends Fragment {
         try {
             Map<String, String> m = Tools.getCPUInfo();
 
-            String i = "";
+            String i = "ABI: " + Tools.getABI() + "\n";
             for (Map.Entry<String, String> pair : m.entrySet()) {
                 i += pair.getKey() + ": " + pair.getValue() + "\n";
             }

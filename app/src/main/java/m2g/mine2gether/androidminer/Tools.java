@@ -23,6 +23,7 @@
 package m2g.mine2gether.androidminer;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -184,5 +185,15 @@ public class Tools {
         }
 
         return output;
+    }
+
+    public static String getABI() {
+        String abiString;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            abiString = Build.SUPPORTED_ABIS[0];
+        } else {
+            abiString = Build.CPU_ABI;
+        }
+        return abiString.toLowerCase().trim();
     }
 }

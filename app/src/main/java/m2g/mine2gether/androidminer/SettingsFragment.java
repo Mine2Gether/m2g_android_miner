@@ -101,10 +101,14 @@ public class SettingsFragment extends Fragment {
 
         if (PreferenceHelper.getName("threads").equals("") == true) {
             selectSpinnerValue(spThreads, Integer.toString(suggested));
+        } else {
+            selectSpinnerValue(spThreads, PreferenceHelper.getName("threads"));
         }
 
         if (PreferenceHelper.getName("maxCpu").equals("") == true) {
             selectSpinnerValue(spMaxCpu, "50");
+        } else {
+            selectSpinnerValue(spMaxCpu, PreferenceHelper.getName("maxCpu"));
         }
 
         if (PreferenceHelper.getName("address").equals("") == false) {
