@@ -1,6 +1,6 @@
 # m2g_android_miner
 
-**A simple cryptocurrency miner for android devices.**
+**A simple cryptocurrency miner for android devices. (Supports Android version 5+)**
 
 <img align="left" height="500" src="https://github.com/Mine2Gether/m2g_android_miner/blob/master/docs/images/miner.jpg">
 <img align="left" height="500" src="https://github.com/Mine2Gether/m2g_android_miner/blob/master/docs/images/settings.jpg">
