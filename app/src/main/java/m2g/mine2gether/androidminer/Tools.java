@@ -124,16 +124,20 @@ public class Tools {
         }
     }
 
-    public static void writeConfig(String configTemplate, String algo, String poolUrl, String username, String pass, int threads, int maxCpu, int av, String privatePath) {
+    public static void writeConfig(String configTemplate, MiningService.MiningConfig miningConfig, String privatePath) {
 
         String config = configTemplate
-                .replace("$algo$", algo)
-                .replace("$url$", poolUrl)
-                .replace("$username$", username)
-                .replace("$pass$", pass)
-                .replace("$threads$", Integer.toString(threads))
-                .replace("$maxcpu$", Integer.toString(maxCpu))
-                .replace("$av$", Integer.toString(av));
+                .replace("$algo$", miningConfig.algo)
+                .replace("$url$", miningConfig.pool)
+                .replace("$username$", miningConfig.username)
+                .replace("$pass$", miningConfig.pass)
+
+                .replace("$legacythreads$",  Integer.toString(miningConfig.legacyThreads))
+                .replace("$legacyintensity$", Integer.toString(miningConfig.legacyIntensity))
+                .replace("$legacyalgo$", miningConfig.algo)
+
+                .replace("$cpuconfig$", miningConfig.cpuConfig);
+
 
         Log.i(LOG_TAG, "CONFIG: " + config);
 

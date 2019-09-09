@@ -64,7 +64,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginRight="5dp"
-                                android:text="@string/threads" />
+                                android:text="Cores" />
 
                             <TextView
                                 android:id="@+id/cpus"
@@ -75,13 +75,11 @@
 
                         </LinearLayout>
 
-                        <android.support.v7.widget.AppCompatSpinner
-                            android:id="@+id/threads"
-                            style="@style/Widget.AppCompat.Spinner.Underlined"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:entries="@array/threadNumbers"
-                            android:spinnerMode="dropdown" />
+                        <NumberPicker
+                            android:theme="@style/DefaultNumberPickerTheme"
+                            android:id="@+id/cores"
+                            android:layout_width="75dp"
+                            android:layout_height="75dp" />
 
                     </LinearLayout>
 
@@ -96,20 +94,39 @@
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="5dp"
                             android:layout_marginRight="5dp"
-                            android:text="Max CPU %" />
+                            android:text="Threads/Core" />
 
-                        <android.support.v7.widget.AppCompatSpinner
-                            android:id="@+id/maxcpu"
-                            style="@style/Widget.AppCompat.Spinner.Underlined"
-                            android:layout_width="match_parent"
+
+                        <NumberPicker
+                            android:theme="@style/DefaultNumberPickerTheme"
+                            android:id="@+id/threads"
+                            android:layout_width="75dp"
+                            android:layout_height="75dp" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:entries="@array/cpuPercent"
-                            android:spinnerMode="dropdown" />
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:text="Intensity" />
+
+                        <NumberPicker
+                            android:theme="@style/DefaultNumberPickerTheme"
+                            android:id="@+id/intensity"
+                            android:layout_width="75dp"
+                            android:layout_height="75dp" />
 
                     </LinearLayout>
 
                 </LinearLayout>
-
 
                 <LinearLayout
                     android:layout_width="match_parent"

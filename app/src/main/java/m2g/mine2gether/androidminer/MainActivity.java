@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         preferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
 
-        //PreferenceHelper.clear();
+        // PreferenceHelper.clear();
 
         contextOfApplication = getApplicationContext();
 
@@ -257,22 +257,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         String algo = PreferenceHelper.getName("algo");
         String assetExtension = PreferenceHelper.getName("assetExtension");
 
+        int cores = Integer.parseInt(PreferenceHelper.getName("cores"));
         int threads = Integer.parseInt(PreferenceHelper.getName("threads"));
-        int maxCpu = Integer.parseInt(PreferenceHelper.getName("maxCpu"));
+        int intensity = Integer.parseInt(PreferenceHelper.getName("intensity"));
 
+        /*
         int av = 1;
 
         if (Tools.getABI().contains("armeabi-v7a")) {
             av = 3;
         }
+        */
 
         MiningService.MiningConfig cfg = binder.getService().newConfig(
                 address,
                 pool,
                 pass,
+                cores,
                 threads,
-                maxCpu,
-                av,
+                intensity,
                 algo,
                 assetExtension);
 

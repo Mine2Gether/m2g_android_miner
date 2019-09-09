@@ -124,22 +124,43 @@ public class MiningService extends Service {
         }
     }
 
-    public static class MiningConfig {
-        String username, pool, pass, algo, assetExtension;
-        int threads, maxCpu, av;
+    private static String createCpuConfig(int cores, int threads, int intensity) {
+
+        String cpuConfig = "";
+
+        for (int i = 0; i < cores; i++){
+            for (int j = 0; j < threads; j++) {
+                if (cpuConfig.equals("") == false) {cpuConfig += ",";}
+                cpuConfig += "[" + Integer.toString(intensity) + "," + Integer.toString(i) + "]";
+            }
+        }
+
+        return "[" + cpuConfig + "]";
     }
 
-    public MiningConfig newConfig(String username, String pool, String pass, int threads, int maxCpu, int av, String algo, String assetExtension) {
+    public static class MiningConfig {
+        String username, pool, pass, algo, assetExtension, cpuConfig;
+        int cores, threads, intensity, legacyThreads, legacyIntensity;
+    }
+
+    public MiningConfig newConfig(String username, String pool, String pass, int cores, int threads, int intensity, String algo, String assetExtension) {
+
         MiningConfig config = new MiningConfig();
 
         config.username = username;
         config.pool = pool;
+        config.cores = cores;
         config.threads = threads;
-        config.maxCpu = maxCpu;
-        config.av = av;
+        config.intensity = intensity;
         config.pass = pass;
         config.algo = algo;
         config.assetExtension = assetExtension;
+
+        config.legacyThreads = threads * cores;
+        config.legacyIntensity = intensity;
+
+        config.cpuConfig = createCpuConfig(cores, threads, intensity);
+
         return config;
     }
 
@@ -238,7 +259,7 @@ public class MiningService extends Service {
         wl.acquire();
 
         try {
-            Tools.writeConfig(configTemplate, config.algo, config.pool, config.username, config.pass, config.threads, config.maxCpu, config.av, privatePath);
+            Tools.writeConfig(configTemplate, config, privatePath);
 
             String[] args = {"./xmrig"};
 

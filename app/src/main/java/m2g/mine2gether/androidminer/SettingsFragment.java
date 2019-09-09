@@ -25,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.AdapterView;
+import android.widget.NumberPicker;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,8 +56,9 @@ public class SettingsFragment extends Fragment {
         Spinner spPool;
         Spinner spAlgo;
 
-        Spinner spThreads;
-        Spinner spMaxCpu;
+        NumberPicker npCores;
+        NumberPicker npThreads;
+        NumberPicker npIntensity;
 
         PoolSpinAdapter poolAdapter;
         AlgoSpinAdapter algoAdapter;
@@ -76,8 +78,9 @@ public class SettingsFragment extends Fragment {
         spPool = view.findViewById(R.id.poolSpinner);
         spAlgo = view.findViewById(R.id.algoSpinner);
 
-        spThreads = view.findViewById(R.id.threads);
-        spMaxCpu = view.findViewById(R.id.maxcpu);
+        npCores = view.findViewById(R.id.cores);
+        npThreads = view.findViewById(R.id.threads);
+        npIntensity = view.findViewById(R.id.intensity);
 
         tvM2gidlink = view.findViewById(R.id.m2gidlink);
         btnFetchm2gid = view.findViewById(R.id.fetchm2gid);
@@ -90,26 +93,46 @@ public class SettingsFragment extends Fragment {
         algoAdapter = new AlgoSpinAdapter(MainActivity.contextOfApplication, R.layout.spinner_text_color, Config.settings.getAlgos());
         spAlgo.setAdapter(algoAdapter);
 
+        tvM2gidlink.setText(Html.fromHtml("<a href=\"https://m2gid.mine2gether.com\">GET AN ID</a>"));
+        tvM2gidlink.setMovementMethod(LinkMovementMethod.getInstance());
+
         int cores = Runtime.getRuntime().availableProcessors();
         // write suggested cores usage into editText
         int suggested = cores / 2;
         if (suggested == 0) suggested = 1;
-        ((TextView) view.findViewById(R.id.cpus)).setText(String.format("(%d %s)", cores, getString(R.string.cpus)));
+        ((TextView) view.findViewById(R.id.cpus)).setText(String.format("(%d)", cores));
 
-        tvM2gidlink.setText(Html.fromHtml("<a href=\"https://m2gid.mine2gether.com\">GET AN ID</a>"));
-        tvM2gidlink.setMovementMethod(LinkMovementMethod.getInstance());
+        npCores.setMinValue(1);
+        npCores.setMaxValue(cores);
+        npCores.setWrapSelectorWheel(true);
+
+        npThreads.setMinValue(1);
+        npThreads.setMaxValue(16);
+        npThreads.setWrapSelectorWheel(true);
+
+        npIntensity.setMinValue(1);
+        npIntensity.setMaxValue(5);
+        npIntensity.setWrapSelectorWheel(true);
+
+        if (PreferenceHelper.getName("cores").equals("") == true) {
+            npCores.setValue(suggested);
+        } else {
+            npCores.setValue(Integer.parseInt(PreferenceHelper.getName("cores")));
+        }
 
         if (PreferenceHelper.getName("threads").equals("") == true) {
-            selectSpinnerValue(spThreads, Integer.toString(suggested));
+            npThreads.setValue(1);
         } else {
-            selectSpinnerValue(spThreads, PreferenceHelper.getName("threads"));
+            npThreads.setValue(Integer.parseInt(PreferenceHelper.getName("threads")));
         }
 
-        if (PreferenceHelper.getName("maxCpu").equals("") == true) {
-            selectSpinnerValue(spMaxCpu, "50");
+        if (PreferenceHelper.getName("intensity").equals("") == true) {
+            npIntensity.setValue(1);
         } else {
-            selectSpinnerValue(spMaxCpu, PreferenceHelper.getName("maxCpu"));
+            npIntensity.setValue(Integer.parseInt(PreferenceHelper.getName("intensity")));
         }
+
+
 
         if (PreferenceHelper.getName("address").equals("") == false) {
             edUser.setText(PreferenceHelper.getName("address"));
@@ -126,7 +149,10 @@ public class SettingsFragment extends Fragment {
             for (int i = 0; i < n; i++) {
                 PoolItem itemPool = (PoolItem) poolAdapter.getItem(i);
                 if (itemPool.getPool().equals(poolAddress)) {
-                    spPool.setSelection(i);
+                    if (itemPool.getAlgo().equals(PreferenceHelper.getName("algo"))) {
+                        spPool.setSelection(i);
+
+                    }
                     break;
                 }
             }
@@ -183,6 +209,34 @@ public class SettingsFragment extends Fragment {
             }
         });
 
+        spAlgo.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                String poolAddress = edPool.getText().toString();
+                int n = poolAdapter.getCount();
+
+                    for (int i = 0; i < n; i++) {
+                        PoolItem itemPool = (PoolItem) poolAdapter.getItem(i);
+                        if (itemPool.getPool().equals(poolAddress)) {
+                            if (itemPool.getAlgo().equals(algoAdapter.getItem(spAlgo.getSelectedItemPosition()).getAlgo())) {
+                                spPool.setSelection(i);
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                    spPool.setSelection(0);
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapter) {
+            }
+        });
+
+
+
         btnFetchm2gid.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -216,11 +270,9 @@ public class SettingsFragment extends Fragment {
                 PreferenceHelper.setName("keyAddress-" + selectedPoolItem.getKey(), edUser.getText().toString().trim());
                 PreferenceHelper.setName("keyPassword-" + selectedPoolItem.getKey(), edPass.getText().toString().trim());
 
-                TextView threads = (TextView) spThreads.getSelectedView();
-                TextView maxCpu = (TextView) spMaxCpu.getSelectedView();
-
-                PreferenceHelper.setName("threads", threads.getText().toString());
-                PreferenceHelper.setName("maxCpu", maxCpu.getText().toString());
+                PreferenceHelper.setName("cores", Integer.toString(npCores.getValue()));
+                PreferenceHelper.setName("threads", Integer.toString(npThreads.getValue()));
+                PreferenceHelper.setName("intensity", Integer.toString(npIntensity.getValue()));
 
                 PreferenceHelper.setName("init", "1");
 
@@ -246,8 +298,11 @@ public class SettingsFragment extends Fragment {
                     for (int i = 0; i < n; i++) {
                         PoolItem itemPool = (PoolItem) poolAdapter.getItem(i);
                         if (itemPool.getPool().equals(poolAddress)) {
-                            spPool.setSelection(i);
-                            return;
+                            if (itemPool.getAlgo().equals(algoAdapter.getItem(spAlgo.getSelectedItemPosition()).getAlgo())) {
+                                spPool.setSelection(i);
+                                return;
+                            }
+                            break;
                         }
                     }
                     spPool.setSelection(0);
