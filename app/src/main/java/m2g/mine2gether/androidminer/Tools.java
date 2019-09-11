@@ -41,10 +41,10 @@ public class Tools {
 
     private static final String LOG_TAG = "MiningSvc";
 
-    public static String loadConfigTemplate(Context context) {
+    public static String loadConfigTemplate(Context context, String path) {
         try {
             StringBuilder buf = new StringBuilder();
-            InputStream json = context.getAssets().open("config.json");
+            InputStream json = context.getAssets().open(path);
             BufferedReader in = new BufferedReader(new InputStreamReader(json, "UTF-8"));
             String str;
 
@@ -82,6 +82,7 @@ public class Tools {
     public static void copyDirectoryContents(Context context, String assetFilePath, String localFilePath) {
 
         String[] folder;
+
         try {
             folder = context.getAssets().list(assetFilePath);
         } catch (Exception e) {
@@ -90,9 +91,43 @@ public class Tools {
 
         for (final String f : folder) {
 
-            Log.i(LOG_TAG, "copy file: source:" + assetFilePath + "/" + f + " dest:" + localFilePath + "/" + f);
-            copyFile(context, assetFilePath + "/" + f, localFilePath + "/" + f);
+            Boolean isDirectory = isAssetDirectory(context,assetFilePath + "/" + f);
+
+            if (isDirectory == false) {
+                Log.i(LOG_TAG, "copy file: source:" + assetFilePath + "/" + f + " dest:" + localFilePath + "/" + f);
+                File file = new File(localFilePath + "/" + f);
+                if (file.exists() && file.isFile()) {
+                    Log.i(LOG_TAG, "copy file delete: source:" + assetFilePath + "/" + f + " dest:" + localFilePath + "/" + f);
+                    file.delete();
+                }
+                copyFile(context, assetFilePath + "/" + f, localFilePath + "/" + f);
+            } else if (isDirectory == true) {
+                Log.i(LOG_TAG, "make directory: source:" + assetFilePath + "/" + f + " dest:" + localFilePath + "/" + f);
+                File dir = new File(localFilePath + "/" + f);
+                dir.mkdir();
+                copyDirectoryContents(context, assetFilePath + "/" + f, localFilePath + "/" + f);
+            }
         }
+
+    }
+
+    private static boolean isAssetDirectory(Context context, String pathInAssetsDir){
+
+        InputStream inputStream = null;
+        Boolean isDirectory = false;
+        try {
+            inputStream = context.getAssets().open(pathInAssetsDir);
+        }  catch(IOException e) {
+            isDirectory = true;
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException e) {
+            }
+        }
+        return isDirectory;
     }
 
     public static void logDirectoryFiles(final File folder) {
@@ -113,11 +148,12 @@ public class Tools {
         for (final File f : folder.listFiles()) {
 
             if (f.isDirectory()) {
+                Log.i(LOG_TAG, "Delete Directory: " + f.getName());
                 deleteDirectoryContents(f);
             }
 
             if (f.isFile()) {
-                Log.i(LOG_TAG, "Delete: " + f.getName());
+                Log.i(LOG_TAG, "Delete File: " + f.getName());
                 f.delete();
             }
 
@@ -132,9 +168,12 @@ public class Tools {
                 .replace("$username$", miningConfig.username)
                 .replace("$pass$", miningConfig.pass)
 
-                .replace("$legacythreads$",  Integer.toString(miningConfig.legacyThreads))
+                .replace("$legacythreads$", Integer.toString(miningConfig.legacyThreads))
                 .replace("$legacyintensity$", Integer.toString(miningConfig.legacyIntensity))
                 .replace("$legacyalgo$", miningConfig.algo)
+
+                .replace("$urlhost$", miningConfig.poolHost)
+                .replace("$urlport$", miningConfig.poolPort)
 
                 .replace("$cpuconfig$", miningConfig.cpuConfig);
 

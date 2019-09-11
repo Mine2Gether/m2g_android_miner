@@ -1,0 +1,42 @@
+{
+    "algo": "$algo$",
+    "api": {
+        "port": 10000,
+        "access-token": null,
+        "id": null,
+        "worker-id": null,
+        "ipv6": false,
+        "restricted": true
+    },
+    "autosave": true,
+    "background": false,
+    "colors": false,
+    "cpu-threads": $legacythreads$,
+    "cpu-optimization": null,
+    "cpu-affinity": null,
+    "priority": 3,
+    "donate-level": 1,
+    "log-file": null,
+    "pools": [
+        {
+            "url": "stratum+tcp://$url$",
+            "user": "$username$",
+            "pass": "$pass$",
+            "rig-id": null,
+            "nicehash": false,
+            "keepalive": true,
+            "variant": -1,
+            "enabled": true,
+            "tls": false,
+            "tls-fingerprint": null
+        }
+    ],
+    "print-time": 30,
+    "retries": 5000,
+    "retry-pause": 5,
+    "user-agent": null,
+    "watch": true,
+    "use-gpu": [],
+    "gpu-intensity": [],
+    "gpu-filter": []
+}

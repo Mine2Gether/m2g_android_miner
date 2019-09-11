@@ -4,16 +4,20 @@
 
 package m2g.mine2gether.androidminer;
 
+import java.util.ArrayList;
+
 public class AlgoItem {
 
     private int mId = 0;
     private String mAlgo = "";
-    private String mAssetExtenstion = "";
+    private ArrayList<MinerItem> mMiners;
+    private String mDefaultMiner  = "";
 
-    public AlgoItem(String algo, String assetExtension) {
+    public AlgoItem(String algo, String defaultMiner, ArrayList<MinerItem> miners) {
         this.mAlgo = algo;
-        this.mAssetExtenstion = assetExtension;
         this.mId = 0;
+        mMiners = miners;
+        mDefaultMiner = defaultMiner;
     }
 
     public void setId(int id){
@@ -28,8 +32,11 @@ public class AlgoItem {
         return this.mAlgo;
     }
 
-    public String getAssetExtension() {
-        return this.mAssetExtenstion;
+    public String getDefaultMiner() {
+        return this.mDefaultMiner;
     }
 
+    public ArrayList<MinerItem> getMiners() {
+        return this.mMiners;
+    }
 }

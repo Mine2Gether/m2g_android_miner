@@ -60,12 +60,11 @@ public class MiningService extends Service {
     private String speed = "0";
     private String lastAssetPath;
     private String lastOutput = "";
+    private String assetExtension = "";
 
     @Override
     public void onCreate() {
         super.onCreate();
-
-        configTemplate = Tools.loadConfigTemplate(this);
         privatePath = getFilesDir().getAbsolutePath();
         Tools.deleteDirectoryContents(new File(privatePath));
     }
@@ -96,12 +95,17 @@ public class MiningService extends Service {
 
         String abi = Tools.getABI();
         String assetPath = "";
+        String libraryPath = "";
+        String configPath = "";
 
         Log.i(LOG_TAG, "MINING SERVICE ABI: " + abi);
 
+        assetExtension = PreferenceHelper.getName("assetExtension");
+
         if (Arrays.asList(SUPPORTED_ARCHITECTURES).contains(abi)) {
-            assetPath = abi;
-            assetPath += PreferenceHelper.getName("assetExtension");
+            assetPath = assetExtension + "/" + abi;
+            libraryPath = "lib" + "/" + abi;
+            configPath = assetExtension + "/config.json";
         } else {
             Log.i(LOG_TAG, "NO ASSET PATH");
         }
@@ -112,7 +116,9 @@ public class MiningService extends Service {
 
         if (assetPath.equals(lastAssetPath) == false) {
             Tools.deleteDirectoryContents(new File(privatePath));
+            Tools.copyDirectoryContents(this, libraryPath, privatePath);
             Tools.copyDirectoryContents(this, assetPath, privatePath);
+            configTemplate = Tools.loadConfigTemplate(this, configPath);
             Tools.logDirectoryFiles(new File(privatePath));
             lastAssetPath = assetPath;
         }
@@ -139,7 +145,7 @@ public class MiningService extends Service {
     }
 
     public static class MiningConfig {
-        String username, pool, pass, algo, assetExtension, cpuConfig;
+        String username, pool, pass, algo, assetExtension, cpuConfig, poolHost, poolPort;
         int cores, threads, intensity, legacyThreads, legacyIntensity;
     }
 
@@ -158,6 +164,10 @@ public class MiningService extends Service {
 
         config.legacyThreads = threads * cores;
         config.legacyIntensity = intensity;
+
+        String[] poolParts = pool.split(":");
+        config.poolHost = poolParts[0];
+        config.poolPort = poolParts[1];
 
         config.cpuConfig = createCpuConfig(cores, threads, intensity);
 
@@ -261,7 +271,7 @@ public class MiningService extends Service {
         try {
             Tools.writeConfig(configTemplate, config, privatePath);
 
-            String[] args = {"./xmrig"};
+            String[] args = {"./" + assetExtension};
 
             ProcessBuilder pb = new ProcessBuilder(args);
 
@@ -364,10 +374,13 @@ public class MiningService extends Service {
                         accepted++;
                     } else if (line.contains("speed")) {
                         String[] split = TextUtils.split(line, " ");
-                        speed = split[split.length - 2];
+                        speed = split[4];
                         if (speed.equals("n/a")) {
-                            speed = split[split.length - 6];
+                            speed = split[3];
                         }
+                    }else if (line.toLowerCase().contains("hashrate:")) {
+                        String[] split = TextUtils.split(line, " ");
+                        speed = split[2];
                     }
                     if (output.length() > 50000)
                         output.delete(0, output.indexOf(System.lineSeparator(), 100));

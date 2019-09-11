@@ -1,0 +1,31 @@
+{
+    "hardwareConfiguration": {
+        "cpu": {
+            "enabled": true,
+            "optimizationMethod": "Auto",
+            "threadCount": $legacythreads$
+        },
+        "nvidia": {
+            "devices": [
+                {
+                    "enabled": false,
+                    "id": 0,
+                    "name": ""
+                }
+            ]
+        }
+    },
+    "pools": [
+        {
+            "agent": "",
+            "algorithm": "$algo$",
+            "host": "$urlhost$",
+            "niceHash": false,
+            "password": "$pass$",
+            "port": $urlport$,
+            "priority": 0,
+            "rigID": "",
+            "username": "$username$"
+        }
+    ]
+}

@@ -3,8 +3,10 @@
 // Please see the included LICENSE file for more information.
 
 package m2g.mine2gether.androidminer;
-
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -37,6 +39,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class SettingsFragment extends Fragment {
 
@@ -55,6 +59,7 @@ public class SettingsFragment extends Fragment {
 
         Spinner spPool;
         Spinner spAlgo;
+        Spinner spMiner;
 
         NumberPicker npCores;
         NumberPicker npThreads;
@@ -62,6 +67,7 @@ public class SettingsFragment extends Fragment {
 
         PoolSpinAdapter poolAdapter;
         AlgoSpinAdapter algoAdapter;
+        final MinerSpinAdapter minerAdapter = new MinerSpinAdapter(MainActivity.contextOfApplication, R.layout.spinner_text_color, new ArrayList<MinerItem>());
 
         TextView tvM2gidlink;
 
@@ -77,6 +83,7 @@ public class SettingsFragment extends Fragment {
 
         spPool = view.findViewById(R.id.poolSpinner);
         spAlgo = view.findViewById(R.id.algoSpinner);
+        spMiner = view.findViewById(R.id.minerSpinner);
 
         npCores = view.findViewById(R.id.cores);
         npThreads = view.findViewById(R.id.threads);
@@ -92,6 +99,8 @@ public class SettingsFragment extends Fragment {
 
         algoAdapter = new AlgoSpinAdapter(MainActivity.contextOfApplication, R.layout.spinner_text_color, Config.settings.getAlgos());
         spAlgo.setAdapter(algoAdapter);
+
+        spMiner.setAdapter(minerAdapter);
 
         tvM2gidlink.setText(Html.fromHtml("<a href=\"https://m2gid.mine2gether.com\">GET AN ID</a>"));
         tvM2gidlink.setMovementMethod(LinkMovementMethod.getInstance());
@@ -170,6 +179,7 @@ public class SettingsFragment extends Fragment {
             }
         }
 
+
         if (PreferenceHelper.getName("init").equals("1") == false) {
             spPool.setSelection(Config.settings.defaultPoolIndex);
             edUser.setText(Config.settings.defaultWallet);
@@ -202,6 +212,7 @@ public class SettingsFragment extends Fragment {
                         break;
                     }
                 }
+
             }
 
             @Override
@@ -213,29 +224,63 @@ public class SettingsFragment extends Fragment {
 
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+
+                ArrayList<MinerItem> items = algoAdapter.getItem(spAlgo.getSelectedItemPosition()).getMiners();
+                minerAdapter.addList(items);
+
+                String selectedAlgo = algoAdapter.getItem(spAlgo.getSelectedItemPosition()).getAlgo();
+                String selectedMiner = PreferenceHelper.getName("keyMiner-" + selectedAlgo);
+
+                if (selectedMiner.equals("") == false) {
+
+                    int n = minerAdapter.getCount();
+
+                    for (int i = 0; i < n; i++) {
+                        String itemMiner = (String) minerAdapter.getItem(i).getMiner();
+                        if (itemMiner.equals(selectedMiner)) {
+                            spMiner.setSelection(i);
+                            break;
+                        }
+                    }
+
+                } else {
+
+                    spMiner.setSelection(0);
+
+                    int n = minerAdapter.getCount();
+
+                    String defaultMiner = algoAdapter.getItem(spAlgo.getSelectedItemPosition()).getDefaultMiner();
+
+                    for (int i = 0; i < n; i++) {
+                        String itemMiner = (String) minerAdapter.getItem(i).getMiner();
+                        if (itemMiner.equals(defaultMiner)) {
+                            spMiner.setSelection(i);
+                            break;
+                        }
+                    }
+
+                }
+
                 String poolAddress = edPool.getText().toString();
                 int n = poolAdapter.getCount();
 
                     for (int i = 0; i < n; i++) {
                         PoolItem itemPool = (PoolItem) poolAdapter.getItem(i);
                         if (itemPool.getPool().equals(poolAddress)) {
-                            if (itemPool.getAlgo().equals(algoAdapter.getItem(spAlgo.getSelectedItemPosition()).getAlgo())) {
+                            if (itemPool.getAlgo().equals(selectedAlgo)) {
                                 spPool.setSelection(i);
-                                return;
+                               return;
                             }
                             break;
                         }
                     }
                     spPool.setSelection(0);
-
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> adapter) {
             }
         });
-
-
 
         btnFetchm2gid.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -255,10 +300,15 @@ public class SettingsFragment extends Fragment {
                 PreferenceHelper.setName("pass", edPass.getText().toString().trim());
 
                 AlgoItem selectedAlgoItem = (AlgoItem) spAlgo.getSelectedItem();
-                PreferenceHelper.setName("algo", selectedAlgoItem.getAlgo());
-                PreferenceHelper.setName("assetExtension", selectedAlgoItem.getAssetExtension());
-
+                MinerItem selectedMinerItem = (MinerItem) spMiner.getSelectedItem();
                 PoolItem selectedPoolItem = (PoolItem) spPool.getSelectedItem();
+
+                PreferenceHelper.setName("keyMiner-" + selectedAlgoItem.getAlgo(), selectedMinerItem.getMiner());
+                PreferenceHelper.setName("minerAlgo", selectedMinerItem.getAlgo());
+
+                PreferenceHelper.setName("algo", selectedAlgoItem.getAlgo());
+                PreferenceHelper.setName("assetExtension", selectedMinerItem.getAssetExtension());
+
                 PreferenceHelper.setName("apiUrl", selectedPoolItem.getApiUrl());
                 PreferenceHelper.setName("apiUrlMerged", selectedPoolItem.getApiUrlMerged());
                 PreferenceHelper.setName("poolUrl", selectedPoolItem.getPoolUrl());
@@ -277,6 +327,15 @@ public class SettingsFragment extends Fragment {
                 PreferenceHelper.setName("init", "1");
 
                 Toast.makeText(appContext, "Settings Saved", Toast.LENGTH_SHORT).show();
+
+                MainActivity main = (MainActivity) getActivity();
+                for (Fragment fragment : getFragmentManager().getFragments()) {
+                    if (fragment != null) {
+                        getFragmentManager().beginTransaction().remove(fragment).commit();
+                    }
+                }
+              //  getActivity().getFragmentManager().beginTransaction().remove(this).commit();
+                main.updateUI();
             }
         });
 
@@ -394,6 +453,57 @@ public class SettingsFragment extends Fragment {
         public View getDropDownView(int position, View convertView, ViewGroup parent) {
             TextView label = (TextView) super.getDropDownView(position, convertView, parent);
             label.setText(values[position].getAlgo());
+            label.setPadding(5, 10, 5, 10);
+            return label;
+        }
+    }
+
+    public class MinerSpinAdapter extends ArrayAdapter<MinerItem> {
+
+        private Context context;
+        private ArrayList<MinerItem> values;
+
+        public MinerSpinAdapter(Context c, int textViewResourceId, ArrayList<MinerItem> values) {
+            super(c, textViewResourceId, values);
+            this.context = c;
+            this.values = values;
+        }
+
+        public void addList(ArrayList<MinerItem> list) {
+            values.clear();
+            for (MinerItem value : list) {
+              values.add(value);
+            }
+            this.notifyDataSetChanged();
+        }
+
+        @Override
+        public int getCount() {
+            return values.size();
+        }
+
+        @Override
+        public MinerItem getItem(int position) {
+            return values.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+
+            TextView label = (TextView) super.getView(position, convertView, parent);
+            label.setText(values.get(position).getMiner());
+            return label;
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView, ViewGroup parent) {
+            TextView label = (TextView) super.getDropDownView(position, convertView, parent);
+            label.setText(values.get(position).getMiner());
             label.setPadding(5, 10, 5, 10);
             return label;
         }

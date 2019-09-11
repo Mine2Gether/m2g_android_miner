@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         preferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
 
-        // PreferenceHelper.clear();
+         //PreferenceHelper.clear();
 
         contextOfApplication = getApplicationContext();
 
@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         startService(intent);
     }
 
-    private void updateUI() {
+    public void updateUI() {
 
         String status = "";
         if (PreferenceHelper.getName("address").equals("")) {
@@ -254,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         String pool = PreferenceHelper.getName("pool");
         String pass = PreferenceHelper.getName("pass");
         String address = PreferenceHelper.getName("address");
-        String algo = PreferenceHelper.getName("algo");
+        String algo = PreferenceHelper.getName("minerAlgo");
         String assetExtension = PreferenceHelper.getName("assetExtension");
 
         int cores = Integer.parseInt(PreferenceHelper.getName("cores"));
