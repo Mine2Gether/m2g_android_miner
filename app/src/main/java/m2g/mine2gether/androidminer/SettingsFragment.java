@@ -3,6 +3,7 @@
 // Please see the included LICENSE file for more information.
 
 package m2g.mine2gether.androidminer;
+
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.content.Context;
@@ -21,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -67,6 +69,9 @@ public class SettingsFragment extends Fragment {
 
         PoolSpinAdapter poolAdapter;
         AlgoSpinAdapter algoAdapter;
+
+        CheckBox chkPauseOnBattery;
+
         final MinerSpinAdapter minerAdapter = new MinerSpinAdapter(MainActivity.contextOfApplication, R.layout.spinner_text_color, new ArrayList<MinerItem>());
 
         TextView tvM2gidlink;
@@ -93,6 +98,8 @@ public class SettingsFragment extends Fragment {
         btnFetchm2gid = view.findViewById(R.id.fetchm2gid);
 
         edM2gid = view.findViewById(R.id.m2gid);
+
+        chkPauseOnBattery = view.findViewById(R.id.chkPauseOnBattery);
 
         poolAdapter = new PoolSpinAdapter(MainActivity.contextOfApplication, R.layout.spinner_text_color, Config.settings.getPools());
         spPool.setAdapter(poolAdapter);
@@ -141,6 +148,9 @@ public class SettingsFragment extends Fragment {
             npIntensity.setValue(Integer.parseInt(PreferenceHelper.getName("intensity")));
         }
 
+        if (PreferenceHelper.getName("pauseonbattery").equals("1") == true) {
+            chkPauseOnBattery.setChecked(true);
+        }
 
 
         if (PreferenceHelper.getName("address").equals("") == false) {
@@ -178,7 +188,6 @@ public class SettingsFragment extends Fragment {
                 }
             }
         }
-
 
         if (PreferenceHelper.getName("init").equals("1") == false) {
             spPool.setSelection(Config.settings.defaultPoolIndex);
@@ -264,17 +273,17 @@ public class SettingsFragment extends Fragment {
                 String poolAddress = edPool.getText().toString();
                 int n = poolAdapter.getCount();
 
-                    for (int i = 0; i < n; i++) {
-                        PoolItem itemPool = (PoolItem) poolAdapter.getItem(i);
-                        if (itemPool.getPool().equals(poolAddress)) {
-                            if (itemPool.getAlgo().equals(selectedAlgo)) {
-                                spPool.setSelection(i);
-                               return;
-                            }
-                            break;
+                for (int i = 0; i < n; i++) {
+                    PoolItem itemPool = (PoolItem) poolAdapter.getItem(i);
+                    if (itemPool.getPool().equals(poolAddress)) {
+                        if (itemPool.getAlgo().equals(selectedAlgo)) {
+                            spPool.setSelection(i);
+                            return;
                         }
+                        break;
                     }
-                    spPool.setSelection(0);
+                }
+                spPool.setSelection(0);
             }
 
             @Override
@@ -303,8 +312,10 @@ public class SettingsFragment extends Fragment {
                 MinerItem selectedMinerItem = (MinerItem) spMiner.getSelectedItem();
                 PoolItem selectedPoolItem = (PoolItem) spPool.getSelectedItem();
 
+                //save miner based on algo
                 PreferenceHelper.setName("keyMiner-" + selectedAlgoItem.getAlgo(), selectedMinerItem.getMiner());
                 PreferenceHelper.setName("minerAlgo", selectedMinerItem.getAlgo());
+                PreferenceHelper.setName("miner", selectedMinerItem.getMiner());
 
                 PreferenceHelper.setName("algo", selectedAlgoItem.getAlgo());
                 PreferenceHelper.setName("assetExtension", selectedMinerItem.getAssetExtension());
@@ -324,6 +335,8 @@ public class SettingsFragment extends Fragment {
                 PreferenceHelper.setName("threads", Integer.toString(npThreads.getValue()));
                 PreferenceHelper.setName("intensity", Integer.toString(npIntensity.getValue()));
 
+                PreferenceHelper.setName("pauseonbattery", (chkPauseOnBattery.isChecked() ? "1" : "0"));
+
                 PreferenceHelper.setName("init", "1");
 
                 Toast.makeText(appContext, "Settings Saved", Toast.LENGTH_SHORT).show();
@@ -334,7 +347,9 @@ public class SettingsFragment extends Fragment {
                         getFragmentManager().beginTransaction().remove(fragment).commit();
                     }
                 }
-              //  getActivity().getFragmentManager().beginTransaction().remove(this).commit();
+                //  getActivity().getFragmentManager().beginTransaction().remove(this).commit();
+                NavigationView nav = main.findViewById(R.id.nav_view);
+                nav.getMenu().getItem(0).setChecked(true);
                 main.updateUI();
             }
         });
@@ -472,7 +487,7 @@ public class SettingsFragment extends Fragment {
         public void addList(ArrayList<MinerItem> list) {
             values.clear();
             for (MinerItem value : list) {
-              values.add(value);
+                values.add(value);
             }
             this.notifyDataSetChanged();
         }

@@ -51,11 +51,12 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingLeft="15dp"
-            android:paddingRight="15dp">
+            android:paddingRight="15dp"
+            android:layout_marginBottom="5dp">
 
             <android.support.v7.widget.AppCompatTextView
                 android:id="@+id/miningTo"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Mining to:" />
@@ -68,7 +69,7 @@
             android:orientation="horizontal"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
-            android:paddingBottom="5dp">
+           >
 
             <android.support.v7.widget.AppCompatTextView
                 android:id="@+id/status"
@@ -76,7 +77,8 @@
                 android:layout_height="wrap_content"
                 android:paddingLeft="15dp"
                 android:paddingRight="15dp"
-                android:text="" />
+                android:text=""
+                android:layout_marginBottom="5dp"/>
         </LinearLayout>
 
         <LinearLayout
@@ -84,7 +86,8 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingLeft="15dp"
-            android:paddingRight="15dp">
+            android:paddingRight="15dp"
+            android:layout_marginBottom="10dp">
 
             <android.support.v7.widget.AppCompatTextView
                 android:id="@+id/speed"
@@ -134,20 +137,50 @@
             android:id="@+id/linearLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
             android:paddingBottom="15dp">
 
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/start"
-                android:layout_width="150dp"
+                android:layout_width="100dp"
                 android:layout_height="45dp"
                 android:backgroundTint="#009900"
                 android:backgroundTintMode="src_over"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
                 android:text="@string/start"
                 app:layout_constraintBaseline_toBaselineOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingLeft="0dp"
+                android:paddingRight="0dp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintBaseline_toBaselineOf="parent">
+
+                <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/minerBtn1"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:text="H"/>
+
+                <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/minerBtn2"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:text="P"/>
+
+                <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/minerBtn3"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:text="R"/>
+
+            </LinearLayout>
 
         </android.support.constraint.ConstraintLayout>
     </LinearLayout>

@@ -23,14 +23,16 @@
 package m2g.mine2gether.androidminer;
 
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -44,7 +46,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -66,7 +67,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private final static String[] SUPPORTED_ARCHITECTURES = {"arm64-v8a", "armeabi-v7a", "x86", "x86_64"};
 
-    private ScheduledExecutorService svc;
     private TextView tvLog;
     private TextView edStatus;
     private TextView tvMiningTo;
@@ -88,11 +88,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return contextOfApplication;
     }
 
+    private Button minerBtn1, minerBtn2, minerBtn3;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         preferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
 
-         //PreferenceHelper.clear();
+        //PreferenceHelper.clear();
 
         contextOfApplication = getApplicationContext();
 
@@ -105,6 +107,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wl = pm.newWakeLock(PARTIAL_WAKE_LOCK, "app:sleeplock");
         wl.acquire();
+
+        registerReceiver(batteryInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
         String isshowagain = PreferenceHelper.getName("show_again");
 
@@ -127,15 +131,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer = findViewById(R.id.drawer_layout);
 
         NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.getMenu().getItem(0).setChecked(true);
         navigationView.setNavigationItemSelectedListener(this);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.threadNumbers, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         enableButtons(false);
 
@@ -147,6 +149,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         tvMiningTo = findViewById(R.id.miningTo);
         svOutput = findViewById(R.id.outputScrollView);
 
+        minerBtn1 = (Button) findViewById(R.id.minerBtn1);
+        minerBtn2 = (Button) findViewById(R.id.minerBtn2);
+        minerBtn3 = (Button) findViewById(R.id.minerBtn3);
+
         updateUI();
 
         if (!Arrays.asList(SUPPORTED_ARCHITECTURES).contains(Tools.getABI())) {
@@ -157,6 +163,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Intent intent = new Intent(this, MiningService.class);
         bindService(intent, serverConnection, BIND_AUTO_CREATE);
         startService(intent);
+
+
+        minerBtn1.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                sendInput("h");
+            }
+        });
+
+        minerBtn2.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                sendInput("p");
+            }
+        });
+
+        minerBtn3.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                sendInput("r");
+            }
+        });
+
+    }
+
+    private void setStatusText(String status) {
+
+        if (status == null || status.isEmpty()) {
+            edStatus.setVisibility(View.GONE);
+            edStatus.setText("");
+        } else {
+            edStatus.setVisibility(View.VISIBLE);
+            edStatus.setText(status);
+        }
     }
 
     public void updateUI() {
@@ -166,21 +203,53 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             status = "Update your Wallet Address in 'Settings'";
         }
 
-        edStatus.setText(status);
+        setStatusText(status);
 
         String miningTo = "Mining to:";
         String pool = PreferenceHelper.getName("pool");
         String algo = PreferenceHelper.getName("algo");
+        String miner = PreferenceHelper.getName("miner");
 
         if (pool.equals("") == false) {
             miningTo += "\n" + pool;
         }
 
-        if (algo.equals("") == false) {
-            miningTo += "\n" + algo;
+        if (miner.equals("") == false || algo.equals("") == false) {
+
+            miningTo += "\n";
+
+            if (miner.equals("") == false) {
+                miningTo += miner + ": ";
+            }
+
+            if (algo.equals("") == false) {
+                miningTo += algo;
+            }
         }
 
         tvMiningTo.setText(miningTo);
+
+        if (miner.equals(Config.miner_xmrig)) {
+            minerBtn1.setVisibility(View.VISIBLE);
+            minerBtn2.setVisibility(View.VISIBLE);
+            minerBtn3.setVisibility(View.VISIBLE);
+        } else if (miner.equals(Config.miner_ninjarig)) {
+            minerBtn1.setVisibility(View.VISIBLE);
+            minerBtn2.setVisibility(View.VISIBLE);
+            minerBtn3.setVisibility(View.VISIBLE);
+        } else if (miner.equals(Config.miner_violetminer)) {
+            minerBtn1.setVisibility(View.VISIBLE);
+            minerBtn2.setVisibility(View.INVISIBLE);
+            minerBtn3.setVisibility(View.INVISIBLE);
+        } else if (miner.equals(Config.miner_xmrig_upx)) {
+            minerBtn1.setVisibility(View.VISIBLE);
+            minerBtn2.setVisibility(View.VISIBLE);
+            minerBtn3.setVisibility(View.VISIBLE);
+        } else {
+            minerBtn1.setVisibility(View.INVISIBLE);
+            minerBtn2.setVisibility(View.INVISIBLE);
+            minerBtn3.setVisibility(View.INVISIBLE);
+        }
 
     }
 
@@ -292,15 +361,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onResume() {
         super.onResume();
-        // the executor which will load and display the service status regularly
-        svc = Executors.newSingleThreadScheduledExecutor();
-        svc.scheduleWithFixedDelay(this::updateLog, 1, 1, TimeUnit.SECONDS);
         updateUI();
     }
 
     @Override
     protected void onPause() {
-        svc.shutdown();
         super.onPause();
     }
 
@@ -319,15 +384,41 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Drawable buttonDrawable = btn.getBackground();
         buttonDrawable = DrawableCompat.wrap(buttonDrawable);
 
-        if (state) {
-            btn.setText("Stop");
-            DrawableCompat.setTint(buttonDrawable, Color.rgb(153, 0, 0));
+        if (minerPaused) {
+            btn.setText("Resume");
+            DrawableCompat.setTint(buttonDrawable, Color.rgb(238, 201, 0));
             btn.setBackground(buttonDrawable);
         } else {
-            btn.setText("Start");
-            DrawableCompat.setTint(buttonDrawable, Color.rgb(0, 153, 0));
-            btn.setBackground(buttonDrawable);
+            if (state) {
+                btn.setText("Stop");
+                DrawableCompat.setTint(buttonDrawable, Color.rgb(153, 0, 0));
+                btn.setBackground(buttonDrawable);
+            } else {
+                btn.setText("Start");
+                DrawableCompat.setTint(buttonDrawable, Color.rgb(0, 153, 0));
+                btn.setBackground(buttonDrawable);
+            }
         }
+
+    }
+
+    private void appendLogOutputText(String line) {
+
+        if (tvLog.length() > Config.logMaxLength) {
+            if (binder != null) {
+                tvLog.setText(binder.getService().getOutput());
+            }
+        } else {
+            tvLog.append(line + System.lineSeparator());
+        }
+
+        svOutput.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                svOutput.fullScroll(View.FOCUS_DOWN);
+            }
+        }, 50);
+
     }
 
     private ServiceConnection serverConnection = new ServiceConnection() {
@@ -337,7 +428,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (validArchitecture) {
                 enableButtons(true);
 
-                findViewById(R.id.start).setOnClickListener(MainActivity.this::setMiningState);
+                findViewById(R.id.start).setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        if (minerPaused) {
+                            clearMinerLog = false;
+                        }
+                        minerPaused = false;
+                        setMiningState(v);
+                    }
+                });
 
                 setMiningButtonState(binder.getService().getMiningServiceState());
 
@@ -348,13 +447,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         runOnUiThread(() -> {
                             setMiningButtonState(state);
                             if (state) {
+                                if (clearMinerLog == true) {
+                                    tvLog.setText("");
+                                    tvAccepted.setText("0");
+                                    tvSpeed.setText("0");
+                                }
+                                clearMinerLog = true;
                                 Toast.makeText(contextOfApplication, "Miner Started", Toast.LENGTH_SHORT).show();
                             } else {
                                 Toast.makeText(contextOfApplication, "Miner Stopped", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
+
+                    @Override
+                    public void onStatusChange(String status, String speed, Integer accepted) {
+                        runOnUiThread(() -> {
+                            appendLogOutputText(status);
+                            tvAccepted.setText(Integer.toString(accepted));
+                            tvSpeed.setText(speed);
+                        });
+                    }
+
                 });
+
             }
         }
 
@@ -369,16 +485,53 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         findViewById(R.id.start).setEnabled(enabled);
     }
 
-    private void updateLog() {
-        runOnUiThread(() -> {
-            if (binder != null) {
-                tvLog.setText(binder.getService().getOutput());
-                tvAccepted.setText(Integer.toString(binder.getService().getAccepted()));
-                tvSpeed.setText(binder.getService().getSpeed());
-                svOutput.fullScroll(svOutput.FOCUS_DOWN);
-            }
-        });
+    private void sendInput(String s) {
+        if (binder != null) {
+            binder.getService().sendInput(s);
+        }
     }
+
+    private boolean minerPaused = false;
+    private boolean clearMinerLog = true;
+    static boolean lastIsCharging = false;
+    private BroadcastReceiver batteryInfoReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent batteryStatus) {
+
+            int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+            boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
+
+            if (lastIsCharging == isCharging) return;
+            lastIsCharging = isCharging;
+
+            Toast.makeText(contextOfApplication, (isCharging ? "Device Charging" : "Device on Battery"), Toast.LENGTH_SHORT).show();
+
+            if (PreferenceHelper.getName("pauseonbattery").equals("0") == true) {
+                minerPaused = false;
+                clearMinerLog = true;
+                return;
+            }
+
+            boolean state = false;
+            if (binder != null) {
+                state = binder.getService().getMiningServiceState();
+            }
+
+            if (isCharging) {
+                if (minerPaused) {
+                    minerPaused = false;
+                    clearMinerLog = false;
+                    startMining(null);
+                }
+            } else {
+                if (state) {
+                    minerPaused = true;
+                    stopMining(null);
+                } else {
+                    minerPaused = false;
+                }
+            }
+        }
+    };
+
 }
-
-

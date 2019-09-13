@@ -35,10 +35,13 @@ import android.widget.Toast;
 import android.os.AsyncTask;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -53,10 +56,11 @@ public class MiningService extends Service {
     private String configTemplate;
     private String privatePath;
     private OutputReaderThread outputHandler;
+    private InputReaderThread inputHandler;
     private ProcessMonitor procMon;
     private PowerManager pm;
     private PowerManager.WakeLock wl;
-    private int accepted;
+    private int accepted = 0;
     private String speed = "0";
     private String lastAssetPath;
     private String lastOutput = "";
@@ -73,6 +77,8 @@ public class MiningService extends Service {
 
     public interface MiningServiceStateListener {
         public void onStateChange(Boolean state);
+
+        public void onStatusChange(String status, String speed, Integer accepted);
     }
 
     public void setMiningServiceStateListener(MiningServiceStateListener listener) {
@@ -85,6 +91,10 @@ public class MiningService extends Service {
     private void raiseMiningServiceStateChange(Boolean state) {
         mMiningServiceState = state;
         if (listener != null) listener.onStateChange(state);
+    }
+
+    private void raiseMiningServiceStatusChange(String status, String speed, Integer accepted) {
+        if (listener != null) listener.onStatusChange(status, speed, accepted);
     }
 
     public Boolean getMiningServiceState() {
@@ -134,9 +144,11 @@ public class MiningService extends Service {
 
         String cpuConfig = "";
 
-        for (int i = 0; i < cores; i++){
+        for (int i = 0; i < cores; i++) {
             for (int j = 0; j < threads; j++) {
-                if (cpuConfig.equals("") == false) {cpuConfig += ",";}
+                if (cpuConfig.equals("") == false) {
+                    cpuConfig += ",";
+                }
                 cpuConfig += "[" + Integer.toString(intensity) + "," + Integer.toString(i) + "]";
             }
         }
@@ -167,8 +179,10 @@ public class MiningService extends Service {
 
         String[] poolParts = pool.split(":");
         config.poolHost = poolParts[0];
-        config.poolPort = poolParts[1];
-
+        config.poolPort = "";
+        if (poolParts.length > 1) {
+            config.poolPort = poolParts[1];
+        }
         config.cpuConfig = createCpuConfig(cores, threads, intensity);
 
         return config;
@@ -189,6 +203,11 @@ public class MiningService extends Service {
         if (outputHandler != null) {
             outputHandler.interrupt();
             outputHandler = null;
+        }
+
+        if (inputHandler != null) {
+            inputHandler.interrupt();
+            inputHandler = null;
         }
 
         if (process != null) {
@@ -256,12 +275,14 @@ public class MiningService extends Service {
 
         if (process != null) {
             process.destroy();
+            process = null;
         }
 
         if (wl != null) {
             if (wl.isHeld()) {
                 wl.release(); //Wakelock
             }
+            wl = null;
         }
 
         pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -287,8 +308,11 @@ public class MiningService extends Service {
 
             process = pb.start();
 
-            outputHandler = new MiningService.OutputReaderThread(process.getInputStream());
+            outputHandler = new MiningService.OutputReaderThread(process.getInputStream(), PreferenceHelper.getName("miner"));
             outputHandler.start();
+
+            inputHandler = new MiningService.InputReaderThread(process.getOutputStream());
+            inputHandler.start();
 
             if (procMon != null) {
                 procMon.interrupt();
@@ -321,8 +345,10 @@ public class MiningService extends Service {
         }
     }
 
-    public int getAvailableCores() {
-        return Runtime.getRuntime().availableProcessors();
+    public void sendInput(String s) {
+        if (inputHandler != null) {
+            inputHandler.sendInput(s);
+        }
     }
 
     private class ProcessMonitor extends Thread {
@@ -356,9 +382,46 @@ public class MiningService extends Service {
         private InputStream inputStream;
         private StringBuilder output = new StringBuilder();
         private BufferedReader reader;
+        private String miner;
 
-        OutputReaderThread(InputStream inputStream) {
+        OutputReaderThread(InputStream inputStream, String miner) {
+
             this.inputStream = inputStream;
+            this.miner = miner;
+        }
+
+        private void processLogLine(String line) {
+            output.append(line + System.lineSeparator());
+
+            String lineCompare = line.toLowerCase();
+
+            if (miner.equals(Config.miner_xmrig) || miner.equals(Config.miner_ninjarig) || miner.equals(Config.miner_xmrig_upx)) {
+
+                if (lineCompare.contains("accepted")) {
+                    accepted++;
+                } else if (lineCompare.contains("speed")) {
+                    String[] split = TextUtils.split(line, " ");
+                    speed = split[5];
+                    if (speed.equals("n/a")) {
+                        speed = split[4];
+                    }
+                }
+
+            } else if (miner.equals(Config.miner_violetminer)) {
+
+                if (lineCompare.contains("share accepted")) {
+                    accepted++;
+                } else if (lineCompare.toLowerCase().contains("hashrate:")) {
+                    String[] split = TextUtils.split(line, " ");
+                    speed = split[2];
+                }
+            }
+
+            if (output.length() > Config.logMaxLength)
+                output.delete(0, output.indexOf(System.lineSeparator(), Config.logPruneLength) + 1);
+
+            raiseMiningServiceStatusChange(line, speed, accepted);
+
         }
 
         public void run() {
@@ -367,23 +430,9 @@ public class MiningService extends Service {
                 String line;
                 while ((line = reader.readLine()) != null) {
 
-                    Log.i(LOG_TAG, "miner line: " + line);
+                    Log.i(LOG_TAG, "miner: " + line);
 
-                    output.append(line + System.lineSeparator());
-                    if (line.contains("accepted")) {
-                        accepted++;
-                    } else if (line.contains("speed")) {
-                        String[] split = TextUtils.split(line, " ");
-                        speed = split[4];
-                        if (speed.equals("n/a")) {
-                            speed = split[3];
-                        }
-                    }else if (line.toLowerCase().contains("hashrate:")) {
-                        String[] split = TextUtils.split(line, " ");
-                        speed = split[2];
-                    }
-                    if (output.length() > 50000)
-                        output.delete(0, output.indexOf(System.lineSeparator(), 100));
+                    processLogLine(line);
 
                     if (currentThread().isInterrupted()) return;
                 }
@@ -395,6 +444,48 @@ public class MiningService extends Service {
 
         public StringBuilder getOutput() {
             return output;
+        }
+
+    }
+
+    private class InputReaderThread extends Thread {
+
+        private OutputStream outputStream;
+        private BufferedWriter writer;
+
+        InputReaderThread(OutputStream outputStream) {
+            this.outputStream = outputStream;
+        }
+
+        public void run() {
+            try {
+                writer = new BufferedWriter(new OutputStreamWriter(outputStream));
+
+                while (true) {
+
+                    try {
+                        Thread.sleep(250);
+                    } catch (InterruptedException e) {
+
+                    }
+
+                    if (currentThread().isInterrupted()) return;
+                }
+
+            } catch (Exception e) {
+                Log.w(LOG_TAG, "exception", e);
+            }
+        }
+
+        public void sendInput(String s) {
+
+            try {
+                writer.write(s);
+                writer.flush();
+            } catch (Exception e) {
+                Log.w(LOG_TAG, "exception", e);
+            }
+
         }
 
     }

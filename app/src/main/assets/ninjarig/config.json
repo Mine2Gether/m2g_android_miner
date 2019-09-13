@@ -8,7 +8,7 @@
         "ipv6": false,
         "restricted": true
     },
-    "autosave": true,
+    "autosave": false,
     "background": false,
     "colors": false,
     "cpu-threads": $legacythreads$,

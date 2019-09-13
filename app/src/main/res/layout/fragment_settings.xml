@@ -30,10 +30,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="15dp"
+                android:paddingBottom="25dp"
                 android:orientation="vertical">
 
                 <android.support.v7.widget.AppCompatTextView
-                    android:id="@+id/pcpuText"
+                    android:id="@+id/cpuText"
                     android:layout_width="match_parent"
                     android:layout_height="25dp"
                     android:layout_marginTop="5dp"
@@ -264,6 +265,23 @@
                         android:layout_height="wrap_content"
                         android:hint="(worker name or pool options)"
                         android:text="" />
+
+                    <android.support.v7.widget.AppCompatTextView
+                        android:id="@+id/systemText"
+                        android:layout_width="match_parent"
+                        android:layout_height="25dp"
+                        android:layout_marginTop="5dp"
+                        android:gravity="bottom"
+                        android:text="System"
+                        android:textStyle="bold" />
+
+                    <android.support.v7.widget.AppCompatCheckBox
+                        android:id="@+id/chkPauseOnBattery"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="(worker name or pool options)"
+                        android:text="Pause mining on battery power" />
+
 
                 </LinearLayout>
 

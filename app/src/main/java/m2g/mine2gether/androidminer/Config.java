@@ -8,175 +8,189 @@ import java.util.ArrayList;
 
 public class Config {
 
-    public static Config settings = new Config();
+    public static final Config settings = new Config();
+
+    public static final int defaultPoolIndex = 1;
+    public static final String defaultWallet = "";
+    public static final String defaultPassword = "";
+
+    public static final String miner_xmrig = "XMRig";
+    public static final String miner_violetminer = "violetminer";
+    public static final String miner_ninjarig = "NinjaRig";
+    public static final String miner_xmrig_upx = "XMRig-UPX";
+
+    public static final String asset_xmrig = "xmrig";
+    public static final String asset_violetminer = "violetminer";
+    public static final String asset_ninjaminer = "ninjarig";
+    public static final String asset_xmrig_upx = "xmrig-upx";
+
+    public static final Integer logMaxLength = 50000;
+    public static final Integer logPruneLength = 1000;
 
     private ArrayList<PoolItem> mPools = new ArrayList<PoolItem>();
     private ArrayList<AlgoItem> mAlgos = new ArrayList<AlgoItem>();
 
-    public static int defaultPoolIndex = 1;
-    public static String defaultWallet = "";
-    public static String defaultPassword = "";
 
     public Config() {
 
-        mAlgos.add(new AlgoItem("argon2/chukwa", "NinjaRig",  new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("argon2/chukwa", miner_ninjarig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("NinjaRig", "argon2/chukwa","ninjarig"));
-                add(new MinerItem("violetminer", "chukwa","violetminer"));
-                add(new MinerItem("XMRig", "argon2/chukwa","xmrig"));
+                add(new MinerItem(miner_ninjarig, "argon2/chukwa", asset_ninjaminer));
+                add(new MinerItem(miner_violetminer, "chukwa", asset_violetminer));
+                add(new MinerItem(miner_xmrig, "argon2/chukwa", asset_xmrig));
 
             }
         }));
 
-        mAlgos.add(new AlgoItem("argon2/wrkz", "NinjaRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("argon2/wrkz", miner_ninjarig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("NinjaRig", "chukwa/wrkz","ninjarig"));
-                add(new MinerItem("violetminer", "chukwa_wrkz","violetminer"));
-                add(new MinerItem("XMRig", "argon2/wrkz","xmrig"));
+                add(new MinerItem(miner_ninjarig, "chukwa/wrkz", asset_ninjaminer));
+                add(new MinerItem(miner_violetminer, "chukwa_wrkz", asset_violetminer));
+                add(new MinerItem(miner_xmrig, "argon2/wrkz", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("rx/test", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("rx/test", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "rx/test","xmrig"));
+                add(new MinerItem(miner_xmrig, "rx/test", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("rx/0", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("rx/0", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "rx/0","xmrig"));
+                add(new MinerItem(miner_xmrig, "rx/0", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("rx/wow", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("rx/wow", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "rx/wow","xmrig"));
+                add(new MinerItem(miner_xmrig, "rx/wow", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("rx/loki", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("rx/loki", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "rx/loki","xmrig"));
+                add(new MinerItem(miner_xmrig, "rx/loki", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn/fast", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn/fast", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn/fast","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn/fast", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn/rwz", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn/rwz", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn/rwz","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn/rwz", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn/zls", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn/zls", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn/zls","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn/zls", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn/double","XMRig",  new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn/double", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn/double","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn/double", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn/r", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn/r", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn/r","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn/r", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn/wow", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn/wow", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn/wow","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn/wow", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn/gpu","XMRig",  new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn/gpu", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn/gpu","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn/gpu", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn-pico/trtl","XMRig",  new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn-pico/trtl", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "rx/test","xmrig"));
+                add(new MinerItem(miner_xmrig, "rx/test", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn/half", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn/half", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn/half","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn/half", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn/2", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn/2", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn/2","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn/2", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn/xao", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn/xao", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn/xao","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn/xao", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn/rto","XMRig",  new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn/rto", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn/rto","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn/rto", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn-heavy/tube", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn-heavy/tube", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn-heavy/tube","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn-heavy/tube", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn-heavy/xhv", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn-heavy/xhv", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn-heavy/xhv","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn-heavy/xhv", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn-heavy/0", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn-heavy/0", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn-heavy/0","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn-heavy/0", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn/1", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn/1", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn/1","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn/1", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn-lite/1", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn-lite/1", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn-lite/1","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn-lite/1", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn-lite/0","XMRig",  new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn-lite/0", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn-lite/0","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn-lite/0", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cn/0", "XMRig", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cn/0", miner_xmrig, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig", "cn/0","xmrig"));
+                add(new MinerItem(miner_xmrig, "cn/0", asset_xmrig));
             }
         }));
 
-        mAlgos.add(new AlgoItem("cryptonight-upx/2", "XMRig-UPX", new ArrayList<MinerItem>(){
+        mAlgos.add(new AlgoItem("cryptonight-upx/2", miner_xmrig_upx, new ArrayList<MinerItem>() {
             {
-                add(new MinerItem("XMRig-UPX", "cryptonight-upx/2","xmrig-upx"));
+                add(new MinerItem(miner_xmrig_upx, "cryptonight-upx/2", asset_xmrig_upx));
             }
         }));
 

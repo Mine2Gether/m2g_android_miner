@@ -10,7 +10,7 @@
     "access-token": null,
     "restricted": true
   },
-  "autosave": true,
+  "autosave": false,
   "version": 1,
   "background": false,
   "colors": false,
